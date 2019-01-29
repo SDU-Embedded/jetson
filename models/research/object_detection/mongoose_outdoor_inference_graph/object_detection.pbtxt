@@ -1,0 +1,26 @@
+item {
+  name: "Mongoose"
+  id: 1
+  display_name: "Mongoose"
+}
+item {
+  name: "Person"
+  id: 2
+  display_name: "Person"
+}
+item {
+  name: "Bird"
+  id: 3
+  display_name: "Bird"
+}
+item {
+  name: "Stroller"
+  id: 4
+  display_name: "Stroller"
+}
+item {
+  name: "Car"
+  id: 5
+  display_name: "Car"
+}
+
