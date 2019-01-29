@@ -96,7 +96,7 @@ class DetectedObjects(object):
 		self.classes = np.array([])
 		self.num_detections = np.array([]) 
 
-def createJsonObject(detected_objects, num_of_objects, number_of_classes, category_index, image_np, detection_threshold):
+def createJsonObject(detected_objects, num_of_objects, number_of_classes, category_index, image_np, detection_threshold, camera_ip):
 	current_class = 1
 	
 	json_string = "{\"Objects\":{"
@@ -140,7 +140,7 @@ def createJsonObject(detected_objects, num_of_objects, number_of_classes, catego
 
 		current_class += 1
 	
-	json_string += "}}"
+	json_string += "}},\"Camera\":\"{}\"}}".format(camera_ip)
 			
 	
 	return json_string
@@ -355,7 +355,7 @@ if __name__ == "__main__":
 			ret, image_np = cap.read()	
 
 			detected_objects = detect_objects(image_np,tensorflow_model.detection_graph,sess)
-			json_string = createJsonObject(detected_objects, detected_objects.num_detections, NUM_CLASSES, tensorflow_model.category_index, image_np, DETECTION_THRESHOLD)
+			json_string = createJsonObject(detected_objects, detected_objects.num_detections, NUM_CLASSES, tensorflow_model.category_index, image_np, DETECTION_THRESHOLD, camera_ip)
 
 			filtered_detected_objects = filter_objects(DETECTION_CLASS, detected_objects, DETECTION_THRESHOLD) 			
 
