@@ -69,7 +69,7 @@ class EventEmitter():
         tmp["Bird"] = bird
   
     def send(self, dat):
-        print (dat)
+#        print (dat)
         self.producer.send(self.topic, dat.encode())    
 
 def show_fps(fps):
