@@ -9,6 +9,10 @@ import time
 import copy
 import re
 
+import json,time
+from datetime import datetime
+from kafka import KafkaConsumer, KafkaProducer
+
 from collections import defaultdict
 from io import StringIO
 from PIL import Image
@@ -50,6 +54,27 @@ GSTREAMER_PIPELINE_3 = "filesrc location=Image_test.jpg ! application/x-rtp,enco
 
 
 font = cv2.FONT_HERSHEY_SIMPLEX
+
+class EventEmitter():
+    def __init__(self, servers, topic):
+        self.servers = servers
+        self.topic = topic
+        self.producer = KafkaProducer(bootstrap_servers=self.servers)
+
+    def prepare_event(self, mongoose, person, bird, stroller, car, camera):
+	tmp = dict()
+	tmp["@timestamp"] = datetime.utcnow()
+	tmp["Mongoose"] = mongoose
+	tmp["Person"] = person
+        tmp["Bird"] = bird
+        tmp["Stroller"] = stroller
+        tmp["Car"] = car
+        tmp["Camera"] = camera	
+	self.event_emitter.send(json.dumps(tmp))
+
+    def send(self, dat):
+        print (dat)
+        self.producer.send(self.topic, dat.encode())    
 
 def show_fps(fps):
 	current_time = time.time()
@@ -324,10 +349,13 @@ def filter_objects(detection_class, detected_objects, detection_threshold):
 	return filtered_detected_objects
 
 if __name__ == "__main__":
-	if len(sys.argv)!=4: sys.exit("Missing arguments, please enter camera IP, network interface and path to tensorflow model")
+	if len(sys.argv)!=5: sys.exit("Missing arguments, please enter camera IP, network interface, path to tensorflow model and event output topic")
 	camera_ip = sys.argv[1]
 	_IFACE = sys.argv[2]
 	model_name = sys.argv[3]
+	topic = sys.argv[4]
+
+	servers = 'manna.mmmi-lab,hou.mmmi-lab,bisnap.mmmi-lab'
 
 	gstr_pipe = "udpsrc multicast-group=" + camera_ip + " auto-multicast=true multicast-iface=" + _IFACE + " ! " + _VIDEO_CAPS + " ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! videoscale ! " + output_size + " ! queue2 ! appsink sync=false"
 
@@ -349,6 +377,8 @@ if __name__ == "__main__":
 
 	last_time = time.time()
 
+	emitter = EventEmitter(servers,topic)
+
 	with tensorflow_model.detection_graph.as_default():
 	  with tf.Session(graph=tensorflow_model.detection_graph) as sess:
 		while True:	
@@ -356,6 +386,8 @@ if __name__ == "__main__":
 
 			detected_objects = detect_objects(image_np,tensorflow_model.detection_graph,sess)
 			json_string = createJsonObject(detected_objects, detected_objects.num_detections, NUM_CLASSES, tensorflow_model.category_index, image_np, DETECTION_THRESHOLD, camera_ip)
+			
+			emitter.send(json_string)			
 
 			filtered_detected_objects = filter_objects(DETECTION_CLASS, detected_objects, DETECTION_THRESHOLD) 			
 
