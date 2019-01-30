@@ -67,11 +67,7 @@ class EventEmitter():
 	tmp["Mongoose"] = mongoose
 	tmp["Person"] = person
         tmp["Bird"] = bird
-        tmp["Stroller"] = stroller
-        tmp["Car"] = car
-        tmp["Camera"] = camera	
-	self.event_emitter.send(json.dumps(tmp))
-
+  
     def send(self, dat):
         print (dat)
         self.producer.send(self.topic, dat.encode())    
@@ -124,7 +120,7 @@ class DetectedObjects(object):
 def createJsonObject(detected_objects, num_of_objects, number_of_classes, category_index, image_np, detection_threshold, camera_ip):
 	current_class = 1
 	
-	json_string = "{\"Objects\":{"
+	json_string = "{{\"@timestamp\":\"{}\",\"Objects\":{{".format(datetime.utcnow().isoformat())
 	
 	while current_class <= number_of_classes:
 		temp_object = DetectedObjects(None,None,None,None)
